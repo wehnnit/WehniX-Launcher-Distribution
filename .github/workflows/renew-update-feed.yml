@@ -1,0 +1,25 @@
+name: Renew beta update feed
+on:
+  schedule:
+    - cron: '17 9 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: renew-beta-update-feed
+  cancel-in-progress: false
+jobs:
+  renew:
+    if: github.ref == 'refs/heads/main' && github.repository == 'wehnnit/WehniX-Launcher-Distribution' && vars.WEHNIX_UPDATE_RENEWAL_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Renew signed manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEHNIX_UPDATE_PRIVATE_KEY_B64: ${{ secrets.WEHNIX_UPDATE_PRIVATE_KEY_B64 }}
+        run: python3 tools/renew-update-feed.py --repository "$GITHUB_REPOSITORY"
